@@ -1,0 +1,8 @@
+C:\Users\Louis\OneDrive\Documents\GitHub\C-sharp-graphics-practice\GraphicsProject\GraphicsProject\obj\Debug\GraphicsProject.csproj.AssemblyReference.cache
+C:\Users\Louis\OneDrive\Documents\GitHub\C-sharp-graphics-practice\GraphicsProject\GraphicsProject\obj\Debug\GraphicsProject.csproj.SuggestedBindingRedirects.cache
+C:\Users\Louis\OneDrive\Documents\GitHub\C-sharp-graphics-practice\GraphicsProject\GraphicsProject\obj\Debug\GraphicsProject.csproj.CoreCompileInputs.cache
+C:\Users\Louis\OneDrive\Documents\GitHub\C-sharp-graphics-practice\GraphicsProject\GraphicsProject\bin\Debug\GraphicsProject.exe.config
+C:\Users\Louis\OneDrive\Documents\GitHub\C-sharp-graphics-practice\GraphicsProject\GraphicsProject\bin\Debug\GraphicsProject.exe
+C:\Users\Louis\OneDrive\Documents\GitHub\C-sharp-graphics-practice\GraphicsProject\GraphicsProject\bin\Debug\GraphicsProject.pdb
+C:\Users\Louis\OneDrive\Documents\GitHub\C-sharp-graphics-practice\GraphicsProject\GraphicsProject\obj\Debug\GraphicsProject.exe
+C:\Users\Louis\OneDrive\Documents\GitHub\C-sharp-graphics-practice\GraphicsProject\GraphicsProject\obj\Debug\GraphicsProject.pdb
