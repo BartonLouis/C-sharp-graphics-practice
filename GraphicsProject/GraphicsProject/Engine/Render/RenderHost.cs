@@ -1,4 +1,5 @@
-﻿using System;
+﻿using GraphicsProject.Inputs;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,20 +9,35 @@ namespace GraphicsProject.Engine.Render
 {
     public abstract class RenderHost : IRenderHost
     {
+
+        #region // storage
         public IntPtr HostHandle { get; private set; }
+        public IInput HostInput { get; private set; }
 
         public FpsCounter FpsCounter { get; private set; }
 
-        protected RenderHost(IntPtr hostHandle)
+        #endregion
+
+        #region // ctor
+        protected RenderHost(IRenderHostSetup renderHostSetup)
         {
-            HostHandle = hostHandle;
+            HostHandle = renderHostSetup.HostHandle;
+            HostInput = renderHostSetup.HostInput;
+
             FpsCounter = new FpsCounter(new TimeSpan(0, 0, 0, 0, 1000));
         }
         public virtual void Dispose() {
-            FpsCounter?.Dispose();
+            FpsCounter.Dispose();
             FpsCounter = default;
+
             HostHandle = default;
+
+            HostInput.Dispose();
+            HostInput = default;
         }
+        #endregion
+
+        #region // render
 
         public void Render()
         {
@@ -31,5 +47,7 @@ namespace GraphicsProject.Engine.Render
         }
 
         protected abstract void RenderInternal();
+
+        #endregion
     }
 }

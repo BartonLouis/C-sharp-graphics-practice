@@ -1,4 +1,5 @@
-﻿using GraphicsProject.Win;
+﻿using GraphicsProject.Engine.Render;
+using GraphicsProject.Win;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -15,7 +16,7 @@ namespace GraphicsProject.Drivers
         private Font FontConsolas12 { get; set; }
         private BufferedGraphics BufferedGraphics { get; set; }
 
-        public RenderHost(IntPtr hostHandle) : base(hostHandle)
+        public RenderHost(IRenderHostSetup renderHostSetup) : base(renderHostSetup)
         {
             GraphicsHost = Graphics.FromHwnd(HostHandle);
             BufferedGraphics = BufferedGraphicsManager.Current.Allocate(GraphicsHost, new Rectangle(Point.Empty, W.GetClientRectangle(HostHandle).Size));

@@ -6,3 +6,8 @@ C:\Users\Louis\OneDrive\Documents\GitHub\C-sharp-graphics-practice\GraphicsProje
 C:\Users\Louis\OneDrive\Documents\GitHub\C-sharp-graphics-practice\GraphicsProject\GraphicsProject\bin\Debug\GraphicsProject.pdb
 C:\Users\Louis\OneDrive\Documents\GitHub\C-sharp-graphics-practice\GraphicsProject\GraphicsProject\obj\Debug\GraphicsProject.exe
 C:\Users\Louis\OneDrive\Documents\GitHub\C-sharp-graphics-practice\GraphicsProject\GraphicsProject\obj\Debug\GraphicsProject.pdb
+C:\Users\Louis\OneDrive\Documents\GitHub\C-sharp-graphics-practice\GraphicsProject\GraphicsProject\bin\Debug\MathNet.Numerics.dll
+C:\Users\Louis\OneDrive\Documents\GitHub\C-sharp-graphics-practice\GraphicsProject\GraphicsProject\bin\Debug\MathNet.Spatial.dll
+C:\Users\Louis\OneDrive\Documents\GitHub\C-sharp-graphics-practice\GraphicsProject\GraphicsProject\bin\Debug\MathNet.Numerics.xml
+C:\Users\Louis\OneDrive\Documents\GitHub\C-sharp-graphics-practice\GraphicsProject\GraphicsProject\bin\Debug\MathNet.Spatial.xml
+C:\Users\Louis\OneDrive\Documents\GitHub\C-sharp-graphics-practice\GraphicsProject\GraphicsProject\obj\Debug\GraphicsProject.csproj.CopyComplete

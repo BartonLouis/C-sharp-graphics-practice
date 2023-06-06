@@ -1,12 +1,15 @@
 ﻿using GraphicsProject.Engine.Render;
+using GraphicsProject.Inputs;
 using GraphicsProject.Utilities;
 using GraphicsProject.Win;
 using System;
 using System.Collections.Generic;
 using System.Drawing.Configuration;
 using System.Linq;
+using System.Media;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Controls;
 
 namespace GraphicsProject.Client
 {
@@ -18,42 +21,53 @@ namespace GraphicsProject.Client
 
             var renderHosts = new[] 
             {
-                CreateWindowsForm(size, "Hello World!", h => new Drivers.RenderHost(h)),
-                CreateWindowWpf(size, "Hello World2!", h => new Drivers.RenderHost(h))
+                CreateWindowsForm(size, "Hello World!", rhs => new Drivers.RenderHost(rhs)),
+                CreateWindowWpf(size, "Hello World2!", rhs => new Drivers.RenderHost(rhs))
             };
             SortWindows(renderHosts);
             return renderHosts;
         }
 
-        private static IRenderHost CreateWindowsForm(System.Drawing.Size size, string title, Func<IntPtr, IRenderHost> ctorRenderHost)
+        public static System.Windows.Forms.Control CreateHostControl()
+        {
+            var hostControl = new System.Windows.Forms.Panel {
+                Dock = System.Windows.Forms.DockStyle.Fill,
+                BackColor = System.Drawing.Color.Transparent,
+                ForeColor = System.Drawing.Color.Transparent
+            };
+
+
+            // Focus control so we can use the mouse to click on this window
+            void EnsureFocus(System.Windows.Forms.Control control) {
+                if (!control.Focused) control.Focus();
+            }
+
+
+            hostControl.MouseEnter += (sender, args) => EnsureFocus(hostControl);
+            hostControl.MouseClick += (sender, args) => EnsureFocus(hostControl);
+
+            return hostControl;
+
+        }
+
+        private static IRenderHost CreateWindowsForm(System.Drawing.Size size, string title, Func<IRenderHostSetup, IRenderHost> ctorRenderHost)
         {
             var window = new System.Windows.Forms.Form
             {
                 Size = size,
                 Text = title
             };
-            var hostControl = new System.Windows.Forms.Panel()
-            {
-                Dock = System.Windows.Forms.DockStyle.Fill,
-                BackColor = System.Drawing.Color.Transparent,
-                ForeColor = System.Drawing.Color.Transparent
-            };
+            var hostControl = CreateHostControl();
             window.Controls.Add(hostControl);
-
-            hostControl.MouseEnter += (sender, args) =>
-            {
-                if (System.Windows.Forms.Form.ActiveForm != window) window.Activate();
-                if (!hostControl.Focused) hostControl.Focus();
-            };
 
             window.FormClosed += (sender, args) => System.Windows.Application.Current.Shutdown();
             window.Show();
 
-            return ctorRenderHost(hostControl.Handle);
+            return ctorRenderHost(new RenderHostSetup(hostControl.Handle(), new InputForms(hostControl)));
             
         }
 
-        private static IRenderHost CreateWindowWpf(System.Drawing.Size size, string title, Func<IntPtr, IRenderHost> ctorRenderHost)
+        private static IRenderHost CreateWindowWpf(System.Drawing.Size size, string title, Func<IRenderHostSetup, IRenderHost> ctorRenderHost)
         {
             var window = new System.Windows.Window
             {
@@ -62,24 +76,18 @@ namespace GraphicsProject.Client
                 Title = title
             };
 
-            var hostControl = new System.Windows.Controls.Grid
+            var hostControl = CreateHostControl();
+            var windowsFormsHost = new System.Windows.Forms.Integration.WindowsFormsHost
             {
-                Background = System.Windows.Media.Brushes.Transparent,
-                Focusable = true
+                Child = hostControl
             };
 
-            window.Content = hostControl;
-
-            hostControl.MouseEnter += (sender, args) =>
-            {
-                if (!window.IsActive) window.Activate();
-                if (!hostControl.IsFocused) hostControl.Focus();
-            };
+            window.Content = windowsFormsHost;
 
             window.Closed += (sender, args) => System.Windows.Application.Current.Shutdown();
             window.Show();
 
-            return ctorRenderHost(hostControl.Handle());
+            return ctorRenderHost(new RenderHostSetup(hostControl.Handle(), new InputForms(hostControl)));
 
         }
 

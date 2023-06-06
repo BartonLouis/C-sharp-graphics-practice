@@ -9,6 +9,7 @@ namespace GraphicsProject.Engine.Render
 {
     public class FpsCounter : IDisposable
     {
+        #region // storage
         public TimeSpan UpdateRate { get; }
         private Stopwatch StopWatchUpdate { get; set; }
         private Stopwatch StopWatchFrame { get; set; }
@@ -20,7 +21,9 @@ namespace GraphicsProject.Engine.Render
         public double FpsGlobal { get; private set; }
 
 
+        #endregion
 
+        #region // ctor
         public FpsCounter(TimeSpan updateRate)
         {
             UpdateRate = updateRate;
@@ -39,6 +42,10 @@ namespace GraphicsProject.Engine.Render
             StopWatchFrame?.Stop();
             StopWatchFrame = default;
         }
+
+        #endregion
+
+        #region // routines
 
         public void StartFrame()
         {
@@ -63,5 +70,6 @@ namespace GraphicsProject.Engine.Render
                 FrameCount = 0;
             }
         }
+        #endregion
     }
 }
