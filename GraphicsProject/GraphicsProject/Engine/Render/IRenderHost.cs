@@ -10,6 +10,8 @@ namespace GraphicsProject.Engine.Render
     {
         IntPtr HostHandle { get; }
 
+        FpsCounter FpsCounter { get; }
 
+        void Render();
     }
 }

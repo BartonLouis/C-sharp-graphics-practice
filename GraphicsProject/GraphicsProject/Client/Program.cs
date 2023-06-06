@@ -27,12 +27,28 @@ namespace GraphicsProject.Client
         private void Constructor()
         {
             RenderHosts = WindowFactory.SeedWindows();
+
+            // render loop
+            while (!Dispatcher.HasShutdownStarted)
+            {
+                Render(RenderHosts);
+                System.Windows.Forms.Application.DoEvents();
+            }
         }
 
         public void Dispose()
         {
             RenderHosts.ForEach(host => host.Dispose());
             RenderHosts = default;
+        }
+
+        #endregion
+
+        #region // render
+
+        private static void Render(IEnumerable<IRenderHost> renderHosts)
+        {
+            renderHosts.ForEach(host => host.Render());
         }
 
         #endregion

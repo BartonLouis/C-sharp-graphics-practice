@@ -8,21 +8,28 @@ namespace GraphicsProject.Engine.Render
 {
     public abstract class RenderHost : IRenderHost
     {
-        #region // storage
         public IntPtr HostHandle { get; private set; }
 
-        #endregion
-
-        #region // constructor
+        public FpsCounter FpsCounter { get; private set; }
 
         protected RenderHost(IntPtr hostHandle)
         {
             HostHandle = hostHandle;
+            FpsCounter = new FpsCounter(new TimeSpan(0, 0, 0, 0, 1000));
         }
-        public void Dispose() {
+        public virtual void Dispose() {
+            FpsCounter?.Dispose();
+            FpsCounter = default;
             HostHandle = default;
         }
 
-        #endregion
+        public void Render()
+        {
+            FpsCounter.StartFrame();
+            RenderInternal();
+            FpsCounter.StopFrame();
+        }
+
+        protected abstract void RenderInternal();
     }
 }

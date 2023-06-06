@@ -51,6 +51,8 @@
   <ItemGroup>
     <Compile Include="Client\Program.cs" />
     <Compile Include="Client\WindowFactory.cs" />
+    <Compile Include="Drivers\RenderHost.cs" />
+    <Compile Include="Engine\Render\FpsCounter.cs" />
     <Compile Include="Engine\Render\IRenderHost.cs" />
     <Compile Include="Engine\Render\RenderHost.cs" />
     <Compile Include="EntryPoint.cs" />
@@ -65,8 +67,6 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Drivers\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
