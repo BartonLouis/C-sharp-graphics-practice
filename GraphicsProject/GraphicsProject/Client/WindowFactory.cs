@@ -4,12 +4,8 @@ using GraphicsProject.Utilities;
 using GraphicsProject.Win;
 using System;
 using System.Collections.Generic;
-using System.Drawing.Configuration;
 using System.Linq;
-using System.Media;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Controls;
+using GraphicsProject.Drivers.Gdi.Render;
 
 namespace GraphicsProject.Client
 {
@@ -21,8 +17,8 @@ namespace GraphicsProject.Client
 
             var renderHosts = new[] 
             {
-                CreateWindowsForm(size, "Hello World!", rhs => new Drivers.RenderHost(rhs)),
-                CreateWindowWpf(size, "Hello World2!", rhs => new Drivers.RenderHost(rhs))
+                CreateWindowsForm(size, "Hello World!", rhs => new Drivers.Gdi.Render.RenderHost(rhs)),
+                CreateWindowWpf(size, "Hello World2!", rhs => new Drivers.Gdi.Render.RenderHost(rhs))
             };
             SortWindows(renderHosts);
             return renderHosts;

@@ -20,6 +20,8 @@ namespace GraphicsProject.Engine.Render
         public double FpsRender { get; private set; }
         public double FpsGlobal { get; private set; }
 
+        public string FpsString => $"FPS = {FpsRender:0} ({FpsGlobal:0})";
+
 
         #endregion
 

@@ -60,7 +60,8 @@
   <ItemGroup>
     <Compile Include="Client\Program.cs" />
     <Compile Include="Client\WindowFactory.cs" />
-    <Compile Include="Drivers\RenderHost.cs" />
+    <Compile Include="Drivers\Gdi\Render\RenderHost.cs" />
+    <Compile Include="Engine\Folder\Viewport.cs" />
     <Compile Include="Engine\Render\FpsCounter.cs" />
     <Compile Include="Engine\Render\IRenderHost.cs" />
     <Compile Include="Engine\Render\RenderHost.cs" />
@@ -85,6 +86,7 @@
     <Compile Include="Inputs\SizeEventHandler.cs" />
     <Compile Include="Mathematics\Extensions\Point2DEx.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Utilities\DirectBitmap.cs" />
     <Compile Include="Utilities\U.cs" />
     <Compile Include="Win\POINT.cs" />
     <Compile Include="Win\RECT.cs" />

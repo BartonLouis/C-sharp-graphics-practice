@@ -74,8 +74,6 @@ namespace GraphicsProject.Inputs
 
             // clear storage
             Control = default;
-
-            base.Dispose();
         }
 
         #endregion
