@@ -1,8 +1,12 @@
 ﻿using GraphicsProject.Engine.Folder;
 using GraphicsProject.Engine.Render;
+using GraphicsProject.Mathematics;
+using GraphicsProject.Mathematics.Extensions;
 using GraphicsProject.Utilities;
 using MathNet.Spatial.Euclidean;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Threading.Tasks;
@@ -126,19 +130,13 @@ namespace GraphicsProject.Drivers.Gdi.Render
         protected override void RenderInternal()
         {
             var graphics = BackBuffer.Graphics;
-            graphics.Clear(Color.Black);
 
-            // Draw Triangle in screen space
-            DrawLineScreenSpace(graphics, Pens.White, new Point3D(100, 200, 0), new Point3D(300, 200, 0));
-            DrawLineScreenSpace(graphics, Pens.White, new Point3D(300, 200, 0), new Point3D(100, 100, 0));
-            DrawLineScreenSpace(graphics, Pens.White, new Point3D(100, 100, 0), new Point3D(100, 200, 0));
+            // Clear background
+            // graphics.Clear(Color.Black);
 
-            // Draw Triangle in view space
-            DrawLineViewSpace(graphics, Pens.Green, new Point3D(0, 0, 0), new Point3D(0, 0.9f, 0));
-            DrawLineViewSpace(graphics, Pens.Green, new Point3D(0, 0.9f, 0), new Point3D(0.9f, 0.9f, 0));
-            DrawLineViewSpace(graphics, Pens.Green, new Point3D(0.9f, 0.9f, 0), new Point3D(0, 0, 0));
 
-            /*var t = DateTime.UtcNow.Millisecond / 1000.0;
+            // Rainbow effect
+            var t = DateTime.UtcNow.Millisecond / 1000.0;
             Color GetColor(int x, int y) => Color.FromArgb
             (
                 byte.MaxValue,
@@ -151,8 +149,27 @@ namespace GraphicsProject.Drivers.Gdi.Render
             {
                 BackBuffer.GetXY(index, out var x, out var y);
                 BackBuffer.Buffer[index] = GetColor(x, y).ToArgb();
-            });*/
+            });
 
+            // screen space triangle
+            DrawPolyLine(new[]
+            {
+                new Point3D(100, 100, 0),
+                new Point3D(100, 200, 0),
+                new Point3D(300, 200, 0),
+                new Point3D(100, 100, 0)
+            }, Space.Screen, Pens.White);
+
+            // view space triangle
+            DrawPolyLine(new[]
+            {
+                new Point3D(0, 0, 0),
+                new Point3D(0, -.9f, 0),
+                new Point3D(.9f, -.9f, 0),
+                new Point3D(0, 0, 0)
+            }, Space.View, Pens.Cyan);
+
+            TestTransformations();
 
 
             graphics.DrawString($"FPS: {FpsCounter.FpsString}", FontConsolas12, Brushes.Red, 0, 0);
@@ -185,6 +202,75 @@ namespace GraphicsProject.Drivers.Gdi.Render
                 (1 - point.Y) * 0.5 * viewport.Height + viewport.Y,
                 0
                 );
+        }
+
+        private void DrawPolyLine(IEnumerable<Point3D> points, Space space, Pen pen)
+        {
+            switch (space)
+            {
+                case Space.World:
+                    throw new NotSupportedException();
+                case Space.View:
+                    DrawPolyLineScreenSpace(MatrixEx.Viewport(Viewport).Transform(points), pen);
+                    break;
+                case Space.Screen:
+                    DrawPolyLineScreenSpace(points, pen);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(space), space, null);
+
+            }
+        }
+
+        private void DrawPolyLineScreenSpace(IEnumerable<Point3D> pointsScreen, Pen pen)
+        {
+            var from = default(Point3D?);
+            foreach (var pointScreen in pointsScreen)
+            {
+                if (from.HasValue)
+                {
+                    BackBuffer.Graphics.DrawLine(pen, (float)from.Value.X, (float)from.Value.Y, (float)pointScreen.X, (float)pointScreen.Y);
+                }
+                from = pointScreen;
+            }
+        }
+
+
+        private void TestTransformations()
+        {
+            var pointsArrowScreen = new[]
+            {
+                new Point3D(0, 0, 0),
+                new Point3D(40, 0, 0),
+                new Point3D(35, 10, 0),
+                new Point3D(50, 0, 0),
+                new Point3D(35, -10, 0),
+                new Point3D(40, 0, 0)
+            };
+
+            var pointsArrowView = new[]
+            {
+                new Point3D(0, 0, 0),
+                new Point3D(0.08, 0, 0),
+                new Point3D(0.07, 0.02, 0),
+                new Point3D(0.1, 0, 0),
+                new Point3D(0.07, -0.02, 0),
+                new Point3D(0.08, 0, 0)
+            };
+
+            // draw default
+            //DrawPolyLine(pointsArrowScreen, Space.Screen, Pens.Yellow);
+            //DrawPolyLine(pointsArrowView, Space.View, Pens.Red);
+
+
+            // Animation params
+            var periodDuration = new TimeSpan(0, 0, 0, 5, 0);
+            var utcNow = DateTime.UtcNow;
+            var t = (utcNow.Second * 1000 + utcNow.Millisecond) % periodDuration.TotalMilliseconds / periodDuration.TotalMilliseconds;
+            var sinT = Math.Sin(t * Math.PI * 2);
+
+            // translate
+            DrawPolyLine((MatrixEx.Rotate(new Vector3D(0, 0, 1), t * Math.PI * 2) * MatrixEx.Translate(100 + sinT * 50, 200 - sinT * 50, 0)).Transform(pointsArrowScreen), Space.Screen, Pens.Red);
         }
         #endregion
     }
