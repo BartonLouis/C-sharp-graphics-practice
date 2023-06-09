@@ -67,7 +67,8 @@ namespace GraphicsProject.Common.Render
 
             Operators = new List<IOperator> {
                 new OperatorResize(this, ResizeHost),
-                new OperatorCameraZoom(this)
+                new OperatorCameraZoom(this),
+                new OperatorCameraPan(this)
             };
             OperatorResize.Resize(this, HostSize, ResizeHost);
         }

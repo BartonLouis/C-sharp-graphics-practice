@@ -1,4 +1,5 @@
 ﻿using MathNet.Numerics.LinearAlgebra;
+using MathNet.Spatial.Euclidean;
 using System;
 namespace GraphicsProject.Common.Camera.Projections
 {
@@ -8,5 +9,7 @@ namespace GraphicsProject.Common.Camera.Projections
         double FarPlane { get; }
         Matrix<double> GetMatrixProjection();
         IProjection GetAdjustedProjection(double aspectRatio);
+
+        Ray3D GetMouseRay(ICameraInfo cameraInfo, Point3D mouseWorld);
     }
 }

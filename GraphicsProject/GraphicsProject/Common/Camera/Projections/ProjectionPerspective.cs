@@ -1,5 +1,6 @@
 ﻿using GraphicsProject.Mathematics.Extensions;
 using MathNet.Numerics.LinearAlgebra;
+using MathNet.Spatial.Euclidean;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -43,6 +44,11 @@ namespace GraphicsProject.Common.Camera.Projections
         public override Matrix<double> GetMatrixProjection()
         {
             return MatrixEx.PerspectiveFovRH(FieldOfViewY, AspectRatio, NearPlane, FarPlane);
+        }
+
+        public override Ray3D GetMouseRay(ICameraInfo cameraInfo, Point3D mouseWorld)
+        {
+            return new Ray3D(mouseWorld, (mouseWorld - cameraInfo.Position).Normalize());
         }
 
         #endregion
