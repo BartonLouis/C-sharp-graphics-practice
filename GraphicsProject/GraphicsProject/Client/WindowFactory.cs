@@ -1,4 +1,4 @@
-﻿using GraphicsProject.Engine.Render;
+﻿using GraphicsProject.Common.Render;
 using GraphicsProject.Inputs;
 using GraphicsProject.Utilities;
 using GraphicsProject.Win;
@@ -18,7 +18,7 @@ namespace GraphicsProject.Client
             var renderHosts = new[] 
             {
                 CreateWindowsForm(size, "Hello World!", rhs => new Drivers.Gdi.Render.RenderHost(rhs)),
-                CreateWindowWpf(size, "Hello World2!", rhs => new Drivers.Gdi.Render.RenderHost(rhs))
+                //CreateWindowWpf(size, "Hello World2!", rhs => new Drivers.Gdi.Render.RenderHost(rhs))
             };
             SortWindows(renderHosts);
             return renderHosts;

@@ -1,11 +1,10 @@
-﻿using GraphicsProject.Engine.Render;
+﻿using GraphicsProject.Common.Camera;
+using GraphicsProject.Common.Render;
+using GraphicsProject.Drivers.Gdi.Render;
 using GraphicsProject.Utilities;
+using MathNet.Spatial.Euclidean;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace GraphicsProject.Client
 {
     internal class Program : System.Windows.Application, IDisposable
@@ -16,8 +15,7 @@ namespace GraphicsProject.Client
 
         #endregion
 
-
-        #region // constructor
+        #region // ctor
 
         public Program() {
             Startup += (sender, args) => Constructor();
@@ -31,6 +29,7 @@ namespace GraphicsProject.Client
             // render loop
             while (!Dispatcher.HasShutdownStarted)
             {
+                DebugCameras(RenderHosts);
                 Render(RenderHosts);
                 System.Windows.Forms.Application.DoEvents();
             }
@@ -49,6 +48,28 @@ namespace GraphicsProject.Client
         private static void Render(IEnumerable<IRenderHost> renderHosts)
         {
             renderHosts.ForEach(host => host.Render());
+        }
+
+        private static void DebugCameras(IReadOnlyList<IRenderHost> renderHosts)
+        {
+            var utcNow = DateTime.UtcNow;
+            const int radius = 2;
+
+            for (var i = 0; i < renderHosts.Count; i++) {
+                var t = Drivers.Gdi.Render.RenderHost.GetDeltaTime(utcNow, new TimeSpan(0, 0, 0, i % 2 == 0 ? 10 : 30));
+                var angle = t * Math.PI * 2;
+                angle *= i % 2 == 0 ? 1 : -1;
+
+                var cameraInfo = renderHosts[i].CameraInfo;
+                renderHosts[i].CameraInfo = new CameraInfo(
+                    new Point3D(Math.Sin(angle) * radius, Math.Cos(angle) * radius, 2),
+                    new Point3D(0, 0, 0.5),
+                    cameraInfo.UpVector,
+                    cameraInfo.Projection,
+                    cameraInfo.Viewport
+                    );
+
+            }
         }
 
         #endregion

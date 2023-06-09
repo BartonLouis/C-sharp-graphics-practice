@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace GraphicsProject.Engine.Folder
+﻿namespace GraphicsProject.Common
 {
     public class Viewport
     {
@@ -24,7 +18,7 @@ namespace GraphicsProject.Engine.Folder
 
         public System.Drawing.Point Location => new System.Drawing.Point(X, Y);
         public System.Drawing.Size Size => new System.Drawing.Size(Width, Height);
-        public double AspectRation => (double)Width / Height;
+        public double AspectRatio => (double)Width / Height;
 
         #endregion
 

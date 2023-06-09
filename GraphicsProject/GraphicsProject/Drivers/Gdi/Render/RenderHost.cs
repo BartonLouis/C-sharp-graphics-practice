@@ -1,20 +1,19 @@
-﻿using GraphicsProject.Engine.Folder;
-using GraphicsProject.Engine.Render;
+﻿using GraphicsProject.Common;
+using GraphicsProject.Common.Render;
 using GraphicsProject.Mathematics;
 using GraphicsProject.Mathematics.Extensions;
 using GraphicsProject.Utilities;
 using MathNet.Spatial.Euclidean;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
-using System.Threading.Tasks;
+using System.Linq;
 
 namespace GraphicsProject.Drivers.Gdi.Render
 {
     public class RenderHost :
-         Engine.Render.RenderHost
+         Common.Render.RenderHost
     {
         #region // storage
 
@@ -55,7 +54,7 @@ namespace GraphicsProject.Drivers.Gdi.Render
         {
             GraphicsHost = Graphics.FromHwnd(HostHandle);
             GraphicsHostDeviceContext = GraphicsHost.GetHdc();
-            CreateSurface(Viewport.Size);
+            CreateSurface(HostSize);
             CreateBuffers(BufferSize);
             FontConsolas12 = new Font("Consolas", 12);
         }
@@ -132,53 +131,19 @@ namespace GraphicsProject.Drivers.Gdi.Render
             var graphics = BackBuffer.Graphics;
 
             // Clear background
-            // graphics.Clear(Color.Black);
+            graphics.Clear(Color.Black);
 
+            DrawWorldAxis();
+            DrawGeometry();
 
-            // Rainbow effect
-            var t = DateTime.UtcNow.Millisecond / 1000.0;
-            Color GetColor(int x, int y) => Color.FromArgb
-            (
-                byte.MaxValue,
-                (byte)((double)x / BufferSize.Width * byte.MaxValue),
-                (byte)((double)y / BufferSize.Height * byte.MaxValue),
-                (byte)(Math.Sin(t * Math.PI) * byte.MaxValue)
-            );
-
-            Parallel.For(0, BackBuffer.Buffer.Length, index =>
-            {
-                BackBuffer.GetXY(index, out var x, out var y);
-                BackBuffer.Buffer[index] = GetColor(x, y).ToArgb();
-            });
-
-            // screen space triangle
-            DrawPolyLine(new[]
-            {
-                new Point3D(100, 100, 0),
-                new Point3D(100, 200, 0),
-                new Point3D(300, 200, 0),
-                new Point3D(100, 100, 0)
-            }, Space.Screen, Pens.White);
-
-            // view space triangle
-            DrawPolyLine(new[]
-            {
-                new Point3D(0, 0, 0),
-                new Point3D(0, -.9f, 0),
-                new Point3D(.9f, -.9f, 0),
-                new Point3D(0, 0, 0)
-            }, Space.View, Pens.Cyan);
-
-            TestTransformations();
-
-
-            graphics.DrawString($"FPS: {FpsCounter.FpsString}", FontConsolas12, Brushes.Red, 0, 0);
+            // Debug Text
+            graphics.DrawString($"{FpsCounter.FpsString}", FontConsolas12, Brushes.Red, 0, 0);
             graphics.DrawString($"Buffer   = {BufferSize.Width}, {BufferSize.Height}", FontConsolas12, Brushes.Cyan, 0, 16);
-            graphics.DrawString($"Viewport = {Viewport.Width}, {Viewport.Height}", FontConsolas12, Brushes.Cyan, 0, 32);
+            graphics.DrawString($"Viewport = {HostSize.Width}, {HostSize.Height}", FontConsolas12, Brushes.Cyan, 0, 32);
 
 
-            // flush and swap buffers
-            BufferedGraphics.Graphics.DrawImage(BackBuffer.Bitmap, new RectangleF(PointF.Empty, Viewport.Size), new RectangleF(new PointF(-0.5f, -0.5f), BufferSize), GraphicsUnit.Pixel);
+            // Flush and Swap Buffers
+            BufferedGraphics.Graphics.DrawImage(BackBuffer.Bitmap, new RectangleF(PointF.Empty, HostSize), new RectangleF(new PointF(-0.5f, -0.5f), BufferSize), GraphicsUnit.Pixel);
             BufferedGraphics.Render(GraphicsHostDeviceContext);
         }
 
@@ -189,8 +154,8 @@ namespace GraphicsProject.Drivers.Gdi.Render
 
         private void DrawLineViewSpace(Graphics graphics, Pen pen, Point3D startView, Point3D endView)
         {
-            Point3D startScreen = TransformFromViewSpaceToScreenSpace(Viewport, startView);
-            Point3D endScreen = TransformFromViewSpaceToScreenSpace(Viewport, endView);
+            Point3D startScreen = TransformFromViewSpaceToScreenSpace(CameraInfo.Viewport, startView);
+            Point3D endScreen = TransformFromViewSpaceToScreenSpace(CameraInfo.Viewport, endView);
             DrawLineScreenSpace(graphics, pen, startScreen, endScreen);
         }
 
@@ -209,9 +174,12 @@ namespace GraphicsProject.Drivers.Gdi.Render
             switch (space)
             {
                 case Space.World:
+
+                    DrawPolyLineScreenSpace((CameraInfo.Cache.MatrixViewProjectionViewport).Transform(points), pen);
+                    break;
                     throw new NotSupportedException();
                 case Space.View:
-                    DrawPolyLineScreenSpace(MatrixEx.Viewport(Viewport).Transform(points), pen);
+                    DrawPolyLineScreenSpace(CameraInfo.Cache.MatrixViewport.Transform(points), pen);
                     break;
                 case Space.Screen:
                     DrawPolyLineScreenSpace(points, pen);
@@ -235,43 +203,85 @@ namespace GraphicsProject.Drivers.Gdi.Render
             }
         }
 
-
-        private void TestTransformations()
+        private void DrawWorldAxis()
         {
-            var pointsArrowScreen = new[]
-            {
-                new Point3D(0, 0, 0),
-                new Point3D(40, 0, 0),
-                new Point3D(35, 10, 0),
-                new Point3D(50, 0, 0),
-                new Point3D(35, -10, 0),
-                new Point3D(40, 0, 0)
-            };
-
-            var pointsArrowView = new[]
-            {
-                new Point3D(0, 0, 0),
-                new Point3D(0.08, 0, 0),
-                new Point3D(0.07, 0.02, 0),
-                new Point3D(0.1, 0, 0),
-                new Point3D(0.07, -0.02, 0),
-                new Point3D(0.08, 0, 0)
-            };
-
-            // draw default
-            //DrawPolyLine(pointsArrowScreen, Space.Screen, Pens.Yellow);
-            //DrawPolyLine(pointsArrowView, Space.View, Pens.Red);
-
-
-            // Animation params
-            var periodDuration = new TimeSpan(0, 0, 0, 5, 0);
-            var utcNow = DateTime.UtcNow;
-            var t = (utcNow.Second * 1000 + utcNow.Millisecond) % periodDuration.TotalMilliseconds / periodDuration.TotalMilliseconds;
-            var sinT = Math.Sin(t * Math.PI * 2);
-
-            // translate
-            DrawPolyLine((MatrixEx.Rotate(new Vector3D(0, 0, 1), t * Math.PI * 2) * MatrixEx.Translate(100 + sinT * 50, 200 - sinT * 50, 0)).Transform(pointsArrowScreen), Space.Screen, Pens.Red);
+            DrawPolyLine(new[] { new Point3D(0, 0, 0), new Point3D(1, 0, 0), new Point3D(0.8, 0.1, 0), new Point3D(0.8, -0.1, 0), new Point3D(1, 0, 0) }, Space.World, Pens.Red);
+            DrawPolyLine(new[] { new Point3D(0, 0, 0), new Point3D(0, 1, 0), new Point3D(0.1, 0.8, 0), new Point3D(-0.1, 0.8, 0), new Point3D(0, 1, 0) }, Space.World, Pens.LawnGreen);
+            DrawPolyLine(new[] { new Point3D(0, 0, 0), new Point3D(0, 0, 1), new Point3D(0, 0.1, 0.8), new Point3D(0, -0.1, 0.8), new Point3D(0, 0, 1) }, Space.World, Pens.Blue);
         }
+
+        private static readonly Point3D[][] CubePolyLines = new[]
+        {
+            new[]
+            {
+                new Point3D(0, 0, 0),
+                new Point3D(0, 1, 0),
+                new Point3D(1, 1, 0),
+                new Point3D(1, 0, 0),
+                new Point3D(0, 0, 0)
+            },
+            new[]
+            {
+                new Point3D(0, 0, 1),
+                new Point3D(0, 1, 1),
+                new Point3D(1, 1, 1),
+                new Point3D(1, 0, 1),
+                new Point3D(0, 0, 1)
+            },
+            new[]{ new Point3D(0, 0, 0), new Point3D(0, 0, 1)},
+            new[]{ new Point3D(0, 1, 0), new Point3D(0, 1, 1)},
+            new[]{ new Point3D(1, 1, 0), new Point3D(1, 1, 1)},
+            new[]{ new Point3D(1, 0, 0), new Point3D(1, 0, 1)}
+        }.Select(cubePolyLine => MatrixEx.Translate(-0.5, -0.5, -0.5).Transform(cubePolyLine).ToArray()).ToArray();
+
+        private void DrawGeometry()
+        {
+            var angle = GetDeltaTime(new TimeSpan(0, 0, 3)) * Math.PI * 2;
+
+            var matrixTransform =
+                MatrixEx.Scale(0.5) *
+                MatrixEx.Rotate(UnitVector3D.Create(0, 0, 1), angle) *
+                MatrixEx.Translate(.5, .5, .5);
+
+            foreach (Point3D[] polyLine in CubePolyLines)
+            {
+                DrawPolyLine(matrixTransform.Transform(polyLine), Space.World, Pens.Cyan);
+            }
+
+            matrixTransform =
+                MatrixEx.Scale(0.5) *
+                MatrixEx.Rotate(UnitVector3D.Create(0, 1, 0), angle) *
+                matrixTransform;
+
+            foreach (Point3D[] polyLine in CubePolyLines)
+            {
+                DrawPolyLine(matrixTransform.Transform(polyLine), Space.World, Pens.Yellow);
+            }
+
+            matrixTransform =
+                MatrixEx.Scale(0.5) *
+                MatrixEx.Rotate(UnitVector3D.Create(1, 0, 0), angle) *
+                matrixTransform;
+
+            foreach (Point3D[] polyLine in CubePolyLines)
+            {
+                DrawPolyLine(matrixTransform.Transform(polyLine), Space.World, Pens.Magenta);
+            }
+        }
+
+        #endregion
+
+        #region // deltaTime
+        public double GetDeltaTime(TimeSpan periodDuration)
+        {
+            return GetDeltaTime(FrameStarted, periodDuration);
+        }
+
+        public static double GetDeltaTime(DateTime timestamp, TimeSpan periodDuration)
+        {
+            return (timestamp.Second * 1000 + timestamp.Millisecond) % periodDuration.TotalMilliseconds / periodDuration.TotalMilliseconds;
+        }
+
         #endregion
     }
 }

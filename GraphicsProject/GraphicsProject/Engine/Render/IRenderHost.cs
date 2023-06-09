@@ -1,19 +1,20 @@
-﻿using GraphicsProject.Inputs;
+﻿using GraphicsProject.Common.Camera;
+using GraphicsProject.Inputs;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace GraphicsProject.Engine.Render
+namespace GraphicsProject.Common.Render
 {
     public interface IRenderHost : IDisposable
     {
         IntPtr HostHandle { get; }
         IInput HostInput { get; }
 
+        ICameraInfo CameraInfo { get; set; }
+
         FpsCounter FpsCounter { get; }
 
         void Render();
+
+        event EventHandler<ICameraInfo> CameraInfoChanged;
     }
 }

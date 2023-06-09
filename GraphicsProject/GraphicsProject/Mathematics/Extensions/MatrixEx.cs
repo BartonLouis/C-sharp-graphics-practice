@@ -1,4 +1,4 @@
-﻿using GraphicsProject.Engine.Folder;
+﻿using GraphicsProject.Common;
 using MathNet.Numerics.LinearAlgebra;
 using MathNet.Spatial.Euclidean;
 using System;

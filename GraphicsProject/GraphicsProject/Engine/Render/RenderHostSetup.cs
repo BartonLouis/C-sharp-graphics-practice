@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace GraphicsProject.Engine.Render
+namespace GraphicsProject.Common.Render
 {
     internal class RenderHostSetup : IRenderHostSetup
     {
