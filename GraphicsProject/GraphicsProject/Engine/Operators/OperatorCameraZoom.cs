@@ -48,7 +48,7 @@ namespace GraphicsProject.Engine.Operators
                 : cameraInfo.Projection.Cloned();
 
             // set camera info
-            RenderHost.CameraInfo = new CameraInfo(position, cameraInfo.Target, cameraInfo.UpVector, cameraInfo.Projection, cameraInfo.Viewport);
+            RenderHost.CameraInfo = new CameraInfo(position, cameraInfo.Target, cameraInfo.UpVector, projection, cameraInfo.Viewport);
         }
 
         #endregion

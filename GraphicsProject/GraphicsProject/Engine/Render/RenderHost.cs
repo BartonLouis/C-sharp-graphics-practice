@@ -2,10 +2,6 @@
 using System;
 using System.Drawing;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using GraphicsProject.Common;
 using GraphicsProject.Common.Camera;
 using MathNet.Spatial.Euclidean;
 using GraphicsProject.Common.Camera.Projections;
@@ -68,7 +64,8 @@ namespace GraphicsProject.Common.Render
             Operators = new List<IOperator> {
                 new OperatorResize(this, ResizeHost),
                 new OperatorCameraZoom(this),
-                new OperatorCameraPan(this)
+                new OperatorCameraPan(this),
+                new OperatorCameraOrbit(this)
             };
             OperatorResize.Resize(this, HostSize, ResizeHost);
         }

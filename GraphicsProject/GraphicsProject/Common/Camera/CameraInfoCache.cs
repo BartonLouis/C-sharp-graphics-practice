@@ -27,18 +27,27 @@ namespace GraphicsProject.Common.Camera
 
         public CameraInfoCache(ICameraInfo cameraInfo)
         {
+            // raw
+
+            // world space -> camera space
             MatrixView = MatrixEx.LookAtRH(cameraInfo.Position.ToVector3D(), cameraInfo.Target.ToVector3D(), cameraInfo.UpVector);
             MatrixViewInverse = MatrixView.Inverse();
 
+            // camera space -> clip space
             MatrixProjection = cameraInfo.Projection.GetMatrixProjection();
             MatrixProjectionInverse = MatrixProjection.Inverse();
 
+            // clip space -> screen space
             MatrixViewport = MatrixEx.Viewport(cameraInfo.Viewport);
-            MatrixViewInverse = MatrixViewport.Inverse();
+            MatrixViewportInverse = MatrixViewport.Inverse();
 
+            // multiplicatives
+
+            // world space -> camera space -> clip space
             MatrixViewProjection = MatrixView * MatrixProjection;
             MatrixViewProjectionInverse = MatrixViewProjection.Inverse();
 
+            // world space -> camera space -> clip space -> screen space
             MatrixViewProjectionViewport = MatrixViewProjection * MatrixViewport;
             MatrixViewProjectionViewportInverse = MatrixViewProjectionViewport.Inverse();
         }
