@@ -9,6 +9,8 @@ using GraphicsProject.Common;
 using GraphicsProject.Common.Camera;
 using MathNet.Spatial.Euclidean;
 using GraphicsProject.Common.Camera.Projections;
+using GraphicsProject.Engine.Operators;
+using GraphicsProject.Utilities;
 
 namespace GraphicsProject.Common.Render
 {
@@ -31,6 +33,9 @@ namespace GraphicsProject.Common.Render
                 CameraInfoChanged?.Invoke(this, m_CameraInfo);
             }
         }
+
+        protected IEnumerable<IOperator> Operators { get; set; }
+
         public FpsCounter FpsCounter { get; private set; }
 
         protected DateTime FrameStarted { get; private set; }
@@ -60,11 +65,15 @@ namespace GraphicsProject.Common.Render
 
             FpsCounter = new FpsCounter(new TimeSpan(0, 0, 0, 0, 1000));
 
-            HostInput.SizeChanged += HostInputOnSizeChanged;
-            HostInputOnSizeChanged(this, new SizeEventArgs(HostSize));
+            Operators = new List<IOperator> {
+                new OperatorResize(this, ResizeHost),
+                new OperatorCameraZoom(this)
+            };
+            OperatorResize.Resize(this, HostSize, ResizeHost);
         }
         public virtual void Dispose() {
-            HostInput.SizeChanged -= HostInputOnSizeChanged;
+            Operators.ForEach(x => x.Dispose());
+            Operators = default;
 
             FpsCounter.Dispose();
             FpsCounter = default;
@@ -82,43 +91,7 @@ namespace GraphicsProject.Common.Render
 
         #region // routines
 
-        private void HostInputOnSizeChanged(object sender, ISizeEventArgs args)
-        {
-            Size Sanitize(Size size)
-            {
-                if (size.Width < 1 || size.Height < 1)
-                {
-                    size = new Size(1, 1);
-                }
-                return size;
-            }
-
-            // update host (surface size)
-            var hostSize = Sanitize(args.NewSize);
-            if (HostSize != hostSize)
-            {
-                ResizeHost(hostSize);
-            }
-
-            // update camera info
-            var cameraInfo = CameraInfo;
-            if (cameraInfo.Viewport.Size != hostSize)
-            {
-                var viewport = new Viewport(
-                    cameraInfo.Viewport.X,
-                    cameraInfo.Viewport.Y,
-                    hostSize.Width,
-                    hostSize.Height,
-                    cameraInfo.Viewport.MinZ,
-                    cameraInfo.Viewport.MaxZ);
-                CameraInfo = new CameraInfo(
-                    cameraInfo.Position,
-                    cameraInfo.Target,
-                    cameraInfo.UpVector,
-                    cameraInfo.Projection.GetAdjustedProjection(viewport.AspectRatio),
-                    viewport);
-            }
-        }
+        
 
         protected virtual void ResizeHost(Size size)
         {
