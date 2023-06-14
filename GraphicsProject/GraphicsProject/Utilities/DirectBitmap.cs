@@ -5,30 +5,14 @@ using System.Runtime.InteropServices;
 
 namespace GraphicsProject.Utilities
 {
+    /// <summary>
+    /// Bitmap wrapper for direct access to its memory.
+    /// </summary>
     public class DirectBitmap :
-         IDisposable
+        Buffer2D<int>,
+        IDisposable
     {
         #region // storage
-
-        /// <summary>
-        /// Size of <see cref="Bitmap"/>.
-        /// </summary>
-        public Size Size { get; }
-
-        /// <summary>
-        /// Width of <see cref="Bitmap"/>.
-        /// </summary>
-        public int Width => Size.Width;
-
-        /// <summary>
-        /// Height of <see cref="Bitmap"/>.
-        /// </summary>
-        public int Height => Size.Height;
-
-        /// <summary>
-        /// Actual buffer which is used for <see cref="Bitmap"/>.
-        /// </summary>
-        public int[] Buffer { get; private set; }
 
         /// <summary>
         /// Pinned GC handle to <see cref="Buffer"/>.
@@ -50,10 +34,9 @@ namespace GraphicsProject.Utilities
         #region // ctor
 
         /// <inheritdoc />
-        public DirectBitmap(Size size)
+        public DirectBitmap(Size size) :
+            base(size)
         {
-            Size = size;
-            Buffer = new int[Width * Height];
             BufferHandle = GCHandle.Alloc(Buffer, GCHandleType.Pinned);
             Bitmap = new Bitmap(Width, Height, Width * 4, PixelFormat.Format32bppPArgb, BufferHandle.AddrOfPinnedObject());
             Graphics = Graphics.FromImage(Bitmap);
@@ -65,7 +48,7 @@ namespace GraphicsProject.Utilities
         {
         }
 
-        /// <inheritdoc />
+        /// <inheritdoc cref="IDisposable" />
         public void Dispose()
         {
             Graphics.Dispose();
@@ -76,29 +59,26 @@ namespace GraphicsProject.Utilities
 
             BufferHandle.Free();
             BufferHandle = default;
-
-            Buffer = default;
         }
 
         #endregion
 
         #region // routines
 
-        public int GetIndex(int x, int y) => x + y * Width;
+        /// <summary>
+        /// Set pixel color at (x, y).
+        /// </summary>
+        public void SetPixel(int x, int y, Color color) => SetValue(x, y, color.ToArgb());
 
-        public void GetXY(int index, out int x, out int y)
-        {
-            y = index / Width;
-            x = index - y * Width;
-        }
+        /// <summary>
+        /// Get pixel color at (x, y).
+        /// </summary>
+        public Color GetPixel(int x, int y) => Color.FromArgb(GetValue(x, y));
 
-        public void SetArgb(int x, int y, int argb) => Buffer[GetIndex(x, y)] = argb;
-
-        public int GetArgb(int x, int y) => Buffer[GetIndex(x, y)];
-
-        public void SetPixel(int x, int y, Color color) => SetArgb(x, y, color.ToArgb());
-
-        public Color GetPixel(int x, int y) => Color.FromArgb(GetArgb(x, y));
+        /// <summary>
+        /// Clear buffer by one color.
+        /// </summary>
+        public void Clear(Color color) => Clear(color.ToArgb());
 
         #endregion
     }

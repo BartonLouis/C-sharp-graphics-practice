@@ -1,8 +1,10 @@
-﻿using GraphicsProject.Engine.Render;
+﻿using GraphicsProject.Drivers.Gdi.Materials;
+using GraphicsProject.Engine.Render;
 using GraphicsProject.Materials;
 using GraphicsProject.Mathematics;
 using GraphicsProject.Mathematics.Extensions;
 using GraphicsProject.Utilities;
+using MathNet.Numerics.LinearAlgebra;
 using MathNet.Spatial.Euclidean;
 using System;
 using System.Collections.Generic;
@@ -38,7 +40,12 @@ namespace GraphicsProject.Drivers.Gdi.Render
         /// <summary>
         /// Back buffer.
         /// </summary>
-        private DirectBitmap BackBuffer { get; set; }
+        public DirectBitmap BackBuffer { get; private set; }
+
+        /// <summary>
+        /// Shader library.
+        /// </summary>
+        public ShaderLibrary ShaderLibrary { get; private set; }
 
         /// <summary>
         /// Font for drawing text with <see cref="System.Drawing"/> objects.
@@ -59,6 +66,7 @@ namespace GraphicsProject.Drivers.Gdi.Render
             GraphicsHostDeviceContext = GraphicsHost.GetHdc();
             CreateSurface(HostInput.Size);
             CreateBuffers(BufferSize);
+            ShaderLibrary = new ShaderLibrary();
             FontConsolas12 = new Font("Consolas", 12);
         }
 
@@ -67,6 +75,8 @@ namespace GraphicsProject.Drivers.Gdi.Render
         {
             FontConsolas12.Dispose();
             FontConsolas12 = default;
+
+            ShaderLibrary = default;
 
             DisposeBuffers();
             DisposeSurface();
@@ -132,68 +142,59 @@ namespace GraphicsProject.Drivers.Gdi.Render
         /// <inheritdoc />
         protected override void RenderInternal(IEnumerable<IPrimitive> primitives)
         {
-            var graphics = BackBuffer.Graphics;
-            graphics.Clear(Color.Black);
+            // clear buffers
+            BackBuffer.Clear(Color.Black);
 
-            // draw
-            DrawPrimitives(primitives);
-            graphics.DrawString(FpsCounter.FpsString, FontConsolas12, Brushes.Red, 0, 0);
+            // render primitives
+            RenderPrimitives(primitives);
+
+            // draw fps
+            BackBuffer.Graphics.DrawString(FpsCounter.FpsString, FontConsolas12, Brushes.Red, 0, 0);
 
             // flush and swap buffers
-            BufferedGraphics.Graphics.DrawImage(BackBuffer.Bitmap, new RectangleF(PointF.Empty, HostSize), new RectangleF(new PointF(-0.5f, -0.5f), BufferSize), GraphicsUnit.Pixel);
+            BufferedGraphics.Graphics.DrawImage(
+                BackBuffer.Bitmap,
+                new RectangleF(PointF.Empty, HostSize),
+                new RectangleF(new PointF(-0.5f, -0.5f), BufferSize),
+                GraphicsUnit.Pixel);
             BufferedGraphics.Render(GraphicsHostDeviceContext);
         }
 
-        private void DrawPrimitives(IEnumerable<IPrimitive> primitives)
+        /// <summary>
+        /// Draw primitives.
+        /// </summary>
+        private void RenderPrimitives(IEnumerable<IPrimitive> primitives)
         {
-            // currently we know how to draw only those type of primitives, so just filter them out
-            // in a future we're gonna solve this generically (without typecasting)
-            foreach (var primitive in primitives.OfType<Materials.Position.IPrimitive>())
+            // TODO: currently we know how to draw only certain type of primitives, so just filter them out
+            // TODO: in a future we're gonna solve this generically (without typecasting)
+            foreach (var primitive in primitives.OfType<GraphicsProject.Materials.Position.IPrimitive>())
             {
-                using (var pen = new Pen(primitive.Material.Color))
-                {
-                    switch (primitive.PrimitiveTopology)
-                    {
-                        // we also only know how to draw polylines, leave other topologies unprocessed
-                        case PrimitiveTopology.LineStrip:
-                            DrawPolyline(primitive.Vertices.Select(vertex => vertex.Position), primitive.PrimitiveBehaviour.Space, pen);
-                            break;
-                    }
-                }
+                var pipeline = Pipeline<GraphicsProject.Materials.Position.Vertex, Materials.Position.VertexShader>.Instance;
+                pipeline.SetRenderHost(this);
+                ShaderLibrary.ShaderPosition.Update(GetMatrixForVertexShader(this, primitive.PrimitiveBehaviour.Space), primitive.Material.Color);
+                pipeline.SetShader(ShaderLibrary.ShaderPosition);
+                pipeline.Render(primitive.Vertices, primitive.PrimitiveTopology);
             }
         }
 
-        private void DrawPolyline(IEnumerable<Point3D> points, Space space, Pen pen)
+        /// <summary>
+        /// Get default matrix for vertex shader.
+        /// </summary>
+        private static Matrix<double> GetMatrixForVertexShader(IRenderHost renderHost, Space space)
         {
             switch (space)
             {
                 case Space.World:
-                    DrawPolylineScreenSpace(CameraInfo.Cache.MatrixViewProjectionViewport.Transform(points), pen);
-                    break;
+                    return renderHost.CameraInfo.Cache.MatrixViewProjection;
 
                 case Space.View:
-                    DrawPolylineScreenSpace(CameraInfo.Cache.MatrixViewport.Transform(points), pen);
-                    break;
+                    return MatrixEx.Identity;
 
                 case Space.Screen:
-                    DrawPolylineScreenSpace(points, pen);
-                    break;
+                    return renderHost.CameraInfo.Cache.MatrixViewportInverse;
 
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(space), space, null);
-            }
-        }
-
-        private void DrawPolylineScreenSpace(IEnumerable<Point3D> pointsScreen, Pen pen)
-        {
-            var from = default(Point3D?);
-            foreach (var pointScreen in pointsScreen)
-            {
-                if (from.HasValue)
-                {
-                    BackBuffer.Graphics.DrawLine(pen, (float)from.Value.X, (float)from.Value.Y, (float)pointScreen.X, (float)pointScreen.Y);
-                }
-                from = pointScreen;
+                    throw new ArgumentOutOfRangeException(nameof(space), space, default);
             }
         }
 

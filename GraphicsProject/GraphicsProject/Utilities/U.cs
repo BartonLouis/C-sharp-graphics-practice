@@ -10,34 +10,100 @@ namespace GraphicsProject.Utilities
 {
     public static class U
     {
-        public static T Cloned<T>(this T cloneable) where T: ICloneable
+        /// <summary>
+        /// <see cref="ICloneable.Clone"/> and cast it to explicit type <typeparam name="T"/>.
+        /// </summary>
+        public static T Cloned<T>(this T cloneable) where T : ICloneable
         {
             return (T)cloneable.Clone();
         }
 
-        public static void ForEach<T>(this IEnumerable<T> collection, Action<T> action)
+        /// <summary>
+        /// Fill array with the same value.
+        /// </summary>
+        public static void Fill<T>(this T[] array, T value)
         {
-            foreach(var item in collection) { action(item); }
+            var length = array.Length;
+            if (length == 0) return;
+
+            // seed
+            var seed = Math.Min(32, array.Length);
+            for (var i = 0; i < seed; i++)
+            {
+                array[i] = value;
+            }
+
+            // copy by doubling
+            int count;
+            for (count = seed; count <= length / 2; count *= 2)
+            {
+                Array.Copy(array, 0, array, count, count);
+            }
+
+            // copy last part
+            var leftover = length - count;
+            if (leftover > 0)
+            {
+                Array.Copy(array, 0, array, count, leftover);
+            }
         }
 
-        public static IntPtr Handle(this System.Windows.Forms.Control window) { 
+        /// <summary>
+        /// Does <see cref="List{T}.ForEach"/> on <see cref="IEnumerable{T}"/> collection.
+        /// </summary>
+        public static void ForEach<T>(this IEnumerable<T> collection, Action<T> action)
+        {
+            foreach (var item in collection)
+            {
+                action(item);
+            }
+        }
+
+        /// <summary>
+        /// Get handle of this window.
+        /// </summary>
+        public static IntPtr Handle(this System.Windows.Forms.Control window)
+        {
             return window.IsDisposed ? default : Handle((System.Windows.Forms.IWin32Window)window);
         }
 
+        /// <summary>
+        /// Get handle of this window.
+        /// </summary>
         public static IntPtr Handle(this System.Windows.Forms.IWin32Window window)
         {
-            return window?.Handle ?? default;
+            return window.Handle;
         }
 
+        /// <summary>
+        /// Get handle of this window.
+        /// </summary>
         public static IntPtr Handle(this System.Windows.Media.Visual window)
         {
-            return window.HandleSource()?.Handle ?? default;
+            var handleSource = window.HandleSource();
+            return handleSource == null || handleSource.IsDisposed ? default : handleSource.Handle;
         }
 
-
+        /// <summary>
+        /// Object Lifetime:
+        /// 
+        /// An HwndSource is a regular common language runtime(CLR) object, and its lifetime is managed by the garbage collector.
+        /// Because the HwndSource represents an unmanaged resource, HwndSource implements IDisposable.
+        /// Synchronously calling Dispose immediately destroys the Win32 window if called from the owner thread.
+        /// If called from another thread, the Win32 window is destroyed asynchronously.
+        /// Calling Dispose explicitly from the interoperating code might be necessary for certain interoperation scenarios.
+        /// </summary>
         public static System.Windows.Interop.HwndSource HandleSource(this System.Windows.Media.Visual window)
         {
             return System.Windows.PresentationSource.FromVisual(window) as System.Windows.Interop.HwndSource;
+        }
+
+        /// <summary>
+        /// Convert color to RGBA integer: 0xRRGGBBAA;
+        /// </summary>
+        public static int ToRgba(this System.Drawing.Color color)
+        {
+            return ((((color.A << 8) + color.B) << 8) + color.G << 8) + color.R;
         }
     }
 }

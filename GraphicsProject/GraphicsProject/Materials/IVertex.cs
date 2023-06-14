@@ -1,4 +1,5 @@
-﻿using MathNet.Spatial.Euclidean;
+﻿using GraphicsProject.Mathematics;
+using MathNet.Spatial.Euclidean;
 
 namespace GraphicsProject.Materials
 {
@@ -15,6 +16,6 @@ namespace GraphicsProject.Materials
     public interface IVertexPosition :
         IVertex
     {
-        Point3D Position { get; }
+        Vector3F Position { get; }
     }
 }

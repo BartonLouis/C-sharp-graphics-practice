@@ -1,4 +1,5 @@
-﻿using MathNet.Spatial.Euclidean;
+﻿using GraphicsProject.Mathematics;
+using MathNet.Spatial.Euclidean;
 using System.Runtime.InteropServices;
 
 namespace GraphicsProject.Materials.Position
@@ -11,7 +12,7 @@ namespace GraphicsProject.Materials.Position
         #region // storage
 
         /// <inheritdoc />
-        public Point3D Position { get; }
+        public Vector3F Position { get; }
 
         #endregion
 
@@ -20,7 +21,7 @@ namespace GraphicsProject.Materials.Position
         /// <summary>
         /// Constructor.
         /// </summary>
-        public Vertex(Point3D position)
+        public Vertex(Vector3F position)
         {
             Position = position;
         }

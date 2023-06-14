@@ -75,6 +75,14 @@
     <Compile Include="Common\Camera\Projections\Projection.cs" />
     <Compile Include="Common\Camera\Projections\ProjectionOrthographic.cs" />
     <Compile Include="Common\Camera\Projections\ProjectionPerspective.cs" />
+    <Compile Include="Drivers\Gdi\Materials\IShader.cs" />
+    <Compile Include="Drivers\Gdi\Materials\IVertexShader.cs" />
+    <Compile Include="Drivers\Gdi\Materials\Position\Shader.cs" />
+    <Compile Include="Drivers\Gdi\Materials\Position\VertexShader.cs" />
+    <Compile Include="Drivers\Gdi\Materials\Shader.cs" />
+    <Compile Include="Drivers\Gdi\Materials\ShaderLibrary.cs" />
+    <Compile Include="Drivers\Gdi\Render\IPipeline.cs" />
+    <Compile Include="Drivers\Gdi\Render\Pipeline.cs" />
     <Compile Include="Drivers\Gdi\Render\RenderHost.cs" />
     <Compile Include="Common\Camera\Viewport.cs" />
     <Compile Include="Engine\Operators\OperatorCameraOrbit.cs" />
@@ -124,9 +132,18 @@
     <Compile Include="Materials\PrimitiveTopology.cs" />
     <Compile Include="Mathematics\Extensions\MatrixEx.cs" />
     <Compile Include="Mathematics\Extensions\Point2DEx.cs" />
+    <Compile Include="Mathematics\Extensions\QuaternionEx.cs" />
+    <Compile Include="Mathematics\Extensions\Vector4DEx.cs" />
+    <Compile Include="Mathematics\Extensions\Vector4FEx.cs" />
     <Compile Include="Mathematics\Space.cs" />
+    <Compile Include="Mathematics\Vector2F.cs" />
+    <Compile Include="Mathematics\Vector3F.cs" />
+    <Compile Include="Mathematics\Vector4D.cs" />
+    <Compile Include="Mathematics\Vector4F.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Utilities\Buffer2D.cs" />
     <Compile Include="Utilities\DirectBitmap.cs" />
+    <Compile Include="Utilities\RandomSync.cs" />
     <Compile Include="Utilities\U.cs" />
     <Compile Include="Win\POINT.cs" />
     <Compile Include="Win\RECT.cs" />
@@ -137,6 +154,7 @@
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
+    <None Include="Resources\bunny.xyz" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

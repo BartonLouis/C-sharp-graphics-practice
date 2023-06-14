@@ -10,6 +10,6 @@ namespace GraphicsProject.Materials
         /// <summary>
         /// Collection of <see cref="TVertex"/>.
         /// </summary>
-        IReadOnlyList<TVertex> Vertices { get; }
+        TVertex[] Vertices { get; }
     }
 }

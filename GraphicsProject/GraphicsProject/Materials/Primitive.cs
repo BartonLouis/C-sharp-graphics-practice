@@ -66,7 +66,7 @@ namespace GraphicsProject.Materials
         public PrimitiveTopology PrimitiveTopology { get; }
 
         /// <inheritdoc />
-        public IReadOnlyList<TVertex> Vertices { get; }
+        public TVertex[] Vertices { get; }
 
         #endregion
 
@@ -75,7 +75,7 @@ namespace GraphicsProject.Materials
         /// <summary>
         /// Constructor.
         /// </summary>
-        protected Primitive(PrimitiveBehaviour primitiveBehaviour, TMaterial material, PrimitiveTopology primitiveTopology, IReadOnlyList<TVertex> vertices) :
+        protected Primitive(PrimitiveBehaviour primitiveBehaviour, TMaterial material, PrimitiveTopology primitiveTopology, TVertex[] vertices) :
             base(primitiveBehaviour, material)
         {
             PrimitiveTopology = primitiveTopology;
