@@ -1,115 +1,151 @@
-﻿using GraphicsProject.Common.Render;
+﻿using GraphicsProject.Engine.Render;
 using GraphicsProject.Inputs;
 using GraphicsProject.Utilities;
 using GraphicsProject.Win;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using GraphicsProject.Drivers.Gdi.Render;
 
 namespace GraphicsProject.Client
 {
     public static class WindowFactory
     {
+        /// <summary>
+        /// Create various windows for rendering.
+        /// </summary>
         public static IReadOnlyList<IRenderHost> SeedWindows()
         {
+            // arbitrary default window size
             var size = new System.Drawing.Size(720, 480);
 
-            var renderHosts = new[] 
+            // create windows (and render hosts)
+            var renderHosts = new[]
             {
-                CreateWindowsForm(size, "Hello World!", rhs => new Drivers.Gdi.Render.RenderHost(rhs)),
-                //CreateWindowWpf(size, "Hello World2!", rhs => new Drivers.Gdi.Render.RenderHost(rhs))
+                CreateWindowForm(size, "Forms Gdi", rhs => new Drivers.Gdi.Render.RenderHost(rhs)),
+                CreateWindowWpf(size, "Wpf Gdi", rhs => new Drivers.Gdi.Render.RenderHost(rhs)),
             };
+
+            // sort windows in the middle of screen
             SortWindows(renderHosts);
+
             return renderHosts;
         }
 
-        public static System.Windows.Forms.Control CreateHostControl()
+        /// <summary>
+        /// Create <see cref="System.Windows.Forms"/> API host control.
+        /// </summary>
+        private static System.Windows.Forms.Control CreateHostControl()
         {
-            var hostControl = new System.Windows.Forms.Panel {
+            var hostControl = new System.Windows.Forms.Panel
+            {
                 Dock = System.Windows.Forms.DockStyle.Fill,
                 BackColor = System.Drawing.Color.Transparent,
-                ForeColor = System.Drawing.Color.Transparent
+                ForeColor = System.Drawing.Color.Transparent,
             };
 
-
-            // Focus control so we can use the mouse to click on this window
-            void EnsureFocus(System.Windows.Forms.Control control) {
-                if (!control.Focused) control.Focus();
+            // focus control, so that we could capture mousewheel events
+            void EnsureFocus(System.Windows.Forms.Control control)
+            {
+                if (!control.Focused)
+                {
+                    control.Focus();
+                }
             }
-
 
             hostControl.MouseEnter += (sender, args) => EnsureFocus(hostControl);
             hostControl.MouseClick += (sender, args) => EnsureFocus(hostControl);
 
             return hostControl;
-
         }
 
-        private static IRenderHost CreateWindowsForm(System.Drawing.Size size, string title, Func<IRenderHostSetup, IRenderHost> ctorRenderHost)
+        /// <summary>
+        /// Create <see cref="System.Windows.Forms.Form"/> and <see cref="IRenderHost"/> for it.
+        /// </summary>
+        private static IRenderHost CreateWindowForm(System.Drawing.Size size, string title, Func<IRenderHostSetup, IRenderHost> ctorRenderHost)
         {
             var window = new System.Windows.Forms.Form
             {
                 Size = size,
-                Text = title
+                Text = title,
             };
+
             var hostControl = CreateHostControl();
             window.Controls.Add(hostControl);
 
-            window.FormClosed += (sender, args) => System.Windows.Application.Current.Shutdown();
+            window.Closed += (sender, args) => System.Windows.Application.Current.Shutdown();
+
             window.Show();
 
             return ctorRenderHost(new RenderHostSetup(hostControl.Handle(), new InputForms(hostControl)));
-            
         }
 
+        /// <summary>
+        /// Create <see cref="System.Windows.Window"/> and <see cref="IRenderHost"/> for it.
+        /// </summary>
         private static IRenderHost CreateWindowWpf(System.Drawing.Size size, string title, Func<IRenderHostSetup, IRenderHost> ctorRenderHost)
         {
             var window = new System.Windows.Window
             {
                 Width = size.Width,
                 Height = size.Height,
-                Title = title
+                Title = title,
             };
 
             var hostControl = CreateHostControl();
+
+            // create forms host (wrapper for wpf)
             var windowsFormsHost = new System.Windows.Forms.Integration.WindowsFormsHost
             {
-                Child = hostControl
+                Child = hostControl,
             };
-
             window.Content = windowsFormsHost;
 
             window.Closed += (sender, args) => System.Windows.Application.Current.Shutdown();
+
             window.Show();
 
             return ctorRenderHost(new RenderHostSetup(hostControl.Handle(), new InputForms(hostControl)));
-
         }
 
-        private static void SortWindows(IEnumerable<IRenderHost> renderHosts) {
+        /// <summary>
+        /// Sort windows in the middle of primary screen.
+        /// </summary>
+        private static void SortWindows(IEnumerable<IRenderHost> renderHosts)
+        {
+            // get window infos from handles
             var windowInfos = renderHosts.Select(renderHost => new WindowInfo(renderHost.HostHandle).GetRoot()).ToArray();
 
+            // figure out max size of window
             var maxSize = new System.Drawing.Size(windowInfos.Max(a => a.RectangleWindow.Width), windowInfos.Max(a => a.RectangleWindow.Height));
 
+            // get max columns and rows
             var maxColumns = (int)Math.Ceiling(Math.Sqrt(windowInfos.Length));
             var maxRows = (int)Math.Ceiling((double)windowInfos.Length / maxColumns);
 
+            // get initial top left corner
             var primaryScreen = System.Windows.Forms.Screen.PrimaryScreen;
             var left = primaryScreen.WorkingArea.Width / 2 - maxColumns * maxSize.Width / 2;
             var top = primaryScreen.WorkingArea.Height / 2 - maxRows * maxSize.Height / 2;
 
-            for(int row = 0; row < maxRows; row++)
+            // try to move windows
+            for (var row = 0; row < maxRows; row++)
             {
-                for (int column = 0; column < maxColumns; column++)
+                for (var column = 0; column < maxColumns; column++)
                 {
+                    // figure out window index
                     var i = row * maxColumns + column;
+
+                    // if it's too big, we moved all of them
                     if (i >= windowInfos.Length) return;
 
+                    // get top left coordinate for window
                     var x = column * maxSize.Width + left;
                     var y = row * maxSize.Height + top;
 
+                    // get window info
                     var windowInfo = windowInfos[i];
+
+                    // move window
                     User32.MoveWindow(windowInfo.Handle, x, y, windowInfo.RectangleWindow.Width, windowInfo.RectangleWindow.Height, false);
                 }
             }

@@ -7,43 +7,74 @@ using MathNet.Spatial.Euclidean;
 using GraphicsProject.Common.Camera.Projections;
 using GraphicsProject.Engine.Operators;
 using GraphicsProject.Utilities;
+using GraphicsProject.Materials;
+using GraphicsProject.Common;
 
-namespace GraphicsProject.Common.Render
+namespace GraphicsProject.Engine.Render
 {
+    /// <summary>
+    /// Base class for render host.
+    /// </summary>
     public abstract class RenderHost : IRenderHost
     {
-
         #region // storage
+
+        /// <inheritdoc />
         public IntPtr HostHandle { get; private set; }
+
+        /// <inheritdoc />
         public IInput HostInput { get; private set; }
+
+        /// <inheritdoc />
         public Size HostSize { get; private set; }
+
+        /// <summary>
+        /// Desired buffer size.
+        /// </summary>
         protected Size BufferSize { get; private set; }
 
+        /// <inheritdoc cref="CameraInfo" />
         private ICameraInfo m_CameraInfo;
+
+        /// <inheritdoc />
         public ICameraInfo CameraInfo
         {
             get => m_CameraInfo;
             set
             {
-                m_CameraInfo= value;
+                m_CameraInfo = value;
                 CameraInfoChanged?.Invoke(this, m_CameraInfo);
             }
         }
 
+        /// <summary>
+        /// Active operators.
+        /// </summary>
         protected IEnumerable<IOperator> Operators { get; set; }
 
+        /// <inheritdoc />
         public FpsCounter FpsCounter { get; private set; }
 
+        /// <summary>
+        /// Timestamp when frame was started (UTC).
+        /// </summary>
         protected DateTime FrameStarted { get; private set; }
 
         #endregion
 
         #region // events
+
+        /// <inheritdoc />
         public event EventHandler<ICameraInfo> CameraInfoChanged;
+
         #endregion
 
         #region // ctor
-        public RenderHost(IRenderHostSetup renderHostSetup)
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        protected RenderHost(IRenderHostSetup renderHostSetup)
         {
             HostHandle = renderHostSetup.HostHandle;
             HostInput = renderHostSetup.HostInput;
@@ -56,51 +87,64 @@ namespace GraphicsProject.Common.Render
                 new Point3D(0, 0, 0),
                 UnitVector3D.Create(0, 0, 1),
                 new ProjectionPerspective(0.001, 1000, Math.PI * 0.5, 1),
+                //new ProjectionOrthographic(0.001, 1000, 2, 2),
                 new Viewport(0, 0, 1, 1, 0, 1)
             );
-
             FpsCounter = new FpsCounter(new TimeSpan(0, 0, 0, 0, 1000));
 
-            Operators = new List<IOperator> {
+            Operators = new List<IOperator>
+            {
                 new OperatorResize(this, ResizeHost),
                 new OperatorCameraZoom(this),
                 new OperatorCameraPan(this),
-                new OperatorCameraOrbit(this)
+                new OperatorCameraOrbit(this),
             };
+
             OperatorResize.Resize(this, HostSize, ResizeHost);
         }
-        public virtual void Dispose() {
-            Operators.ForEach(x => x.Dispose());
+
+        /// <inheritdoc />
+        public virtual void Dispose()
+        {
+            Operators.ForEach(o => o.Dispose());
             Operators = default;
 
             FpsCounter.Dispose();
             FpsCounter = default;
 
-            BufferSize = default;
             CameraInfo = default;
+            BufferSize = default;
             HostSize = default;
-
-            HostHandle = default;
 
             HostInput.Dispose();
             HostInput = default;
+
+            HostHandle = default;
         }
+
         #endregion
 
         #region // routines
 
-        
-
+        /// <summary>
+        /// Resize host.
+        /// </summary>
         protected virtual void ResizeHost(Size size)
         {
             HostSize = size;
         }
 
+        /// <summary>
+        /// Resize all buffers.
+        /// </summary>
         protected virtual void ResizeBuffers(Size size)
         {
             BufferSize = size;
         }
 
+        /// <summary>
+        /// Ensure <see cref="BufferSize"/> are synced with <see cref="ICameraInfo"/>
+        /// </summary>
         protected void EnsureBufferSize()
         {
             var size = CameraInfo.Viewport.Size;
@@ -114,16 +158,20 @@ namespace GraphicsProject.Common.Render
 
         #region // render
 
-        public void Render()
+        /// <inheritdoc />
+        public void Render(IEnumerable<IPrimitive> primitives)
         {
             EnsureBufferSize();
             FrameStarted = DateTime.UtcNow;
             FpsCounter.StartFrame();
-            RenderInternal();
+            RenderInternal(primitives);
             FpsCounter.StopFrame();
         }
 
-        protected abstract void RenderInternal();
+        /// <summary>
+        /// Internal rendering for particular driver.
+        /// </summary>
+        protected abstract void RenderInternal(IEnumerable<IPrimitive> primitives);
 
         #endregion
     }

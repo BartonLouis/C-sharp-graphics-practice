@@ -1,5 +1,4 @@
-﻿using GraphicsProject.Common.Render;
-using GraphicsProject.Drivers.Gdi.Render;
+﻿using GraphicsProject.Engine.Render;
 using GraphicsProject.Inputs;
 using System;
 using System.Collections.Generic;

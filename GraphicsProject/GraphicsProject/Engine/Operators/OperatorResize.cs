@@ -1,13 +1,9 @@
 ﻿using GraphicsProject.Common.Camera;
 using GraphicsProject.Common;
-using GraphicsProject.Common.Render;
 using GraphicsProject.Inputs;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Drawing;
+using GraphicsProject.Engine.Render;
 
 namespace GraphicsProject.Engine.Operators
 {
