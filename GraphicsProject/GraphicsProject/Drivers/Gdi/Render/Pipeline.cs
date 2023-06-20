@@ -105,11 +105,19 @@ namespace GraphicsProject.Drivers.Gdi.Render
                     break;
 
                 case PrimitiveTopology.LineList:
-                    // TODO:
+                    for (var i = 0; i < vertices.Length; i += 2)
+                    {
+                        RasterizeLine(ref vertices[i], ref vertices[i + 1]);
+                    }
                     break;
 
                 case PrimitiveTopology.LineStrip:
-                    // TODO:
+                    for (var i = 0; i < vertices.Length-1; i++)
+                    {
+                        var copy0 = vertices[i];
+                        var copy1 = vertices[i+1];
+                        RasterizeLine(ref copy0, ref copy1);
+                    }
                     break;
 
                 case PrimitiveTopology.TriangleList:
@@ -183,6 +191,75 @@ namespace GraphicsProject.Drivers.Gdi.Render
             var y = (int)vertex0.Position.Y;
             StagePixelShader(x, y, ref vertex0);
         }
+
+        #endregion
+
+        #region // line
+
+        private void RasterizeLine(ref TVertexShader vertex0, ref TVertexShader vertex1)
+        {
+            TransformClipToScreen(ref vertex0);
+            TransformClipToScreen(ref vertex1);
+            DrawLine(ref vertex0, ref vertex1);
+        }
+
+        private void DrawLine(ref TVertexShader vertex0, ref TVertexShader vertex1)
+        {
+            var x0 = (int)vertex0.Position.X;
+            var y0 = (int)vertex0.Position.Y;
+            var x1 = (int)vertex1.Position.X;
+            var y1 = (int)vertex1.Position.Y;
+
+            var empty = default(TVertexShader);
+            var pixels = BresenhamLine(x0, y0, x1, y1);
+
+            foreach(var point in pixels)
+            {
+                StagePixelShader(point.X, point.Y, ref empty);
+            }
+        }
+
+        public static IEnumerable<(int X, int Y)> BresenhamLine(int x0, int y0, int x1, int y1)
+        {
+            int w = x1 - x0;
+            int h = y1 - y0;
+
+            int dx1=0, dy1=0, dx2=0, dy2=0;
+            if (w < 0) dx1 = -1; else if (w > 0) dx1 = 1;
+            if (h < 0) dy1 = -1; else if (h > 0) dy1 = 1;
+            if (w < 0) dx2 = -1; else if (w > 0) dx2 = 1;
+
+            int longest = Math.Abs(w);
+            int shortest = Math.Abs(h);
+
+
+            if (longest <= shortest)
+            {
+                longest = Math.Abs(h);
+                shortest = Math.Abs(w);
+                if (h < 0) dy2 = -1; else if (h > 0) dy2 = 1;
+                dx2 = 0;
+            }
+            int numerator = longest >> 1;
+            for (var i = 0; i <= longest; i++)
+            {
+                yield return (x0, y0);
+                numerator += shortest;
+                if (numerator < longest)
+                {
+                    x0 += dx2;
+                    y0 += dy2;
+                } else
+                {
+                    numerator -= longest;
+                    x0 += dx1;
+                    y0 += dy1;
+                }
+            }
+
+        }
+
+
 
         #endregion
 

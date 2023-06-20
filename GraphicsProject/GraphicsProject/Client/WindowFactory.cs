@@ -22,7 +22,7 @@ namespace GraphicsProject.Client
             var renderHosts = new[]
             {
                 CreateWindowForm(size, "Forms Gdi", rhs => new Drivers.Gdi.Render.RenderHost(rhs)),
-                CreateWindowWpf(size, "Wpf Gdi", rhs => new Drivers.Gdi.Render.RenderHost(rhs)),
+                // CreateWindowWpf(size, "Wpf Gdi", rhs => new Drivers.Gdi.Render.RenderHost(rhs)),
             };
 
             // sort windows in the middle of screen

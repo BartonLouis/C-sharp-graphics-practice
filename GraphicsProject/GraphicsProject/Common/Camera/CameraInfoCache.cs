@@ -1,36 +1,56 @@
-﻿using GraphicsProject.Mathematics.Extensions;
+﻿using GraphicsProject.Mathematics;
+using GraphicsProject.Mathematics.Extensions;
 using MathNet.Numerics.LinearAlgebra;
 
 namespace GraphicsProject.Common.Camera
 {
-    public class CameraInfoCache : ICameraInfoCache
+    /// <inheritdoc cref="ICameraInfoCache" />
+    public class CameraInfoCache :
+        ICameraInfoCache
     {
-        public Matrix<double> MatrixView { get; } 
+        #region // storage
 
-        public Matrix<double> MatrixViewInverse { get; }
+        /// <inheritdoc />
+        public Matrix4D MatrixView { get; }
 
-        public Matrix<double> MatrixProjection { get; }
+        /// <inheritdoc />
+        public Matrix4D MatrixViewInverse { get; }
 
-        public Matrix<double> MatrixProjectionInverse { get; }
+        /// <inheritdoc />
+        public Matrix4D MatrixProjection { get; }
 
-        public Matrix<double> MatrixViewport { get; }
+        /// <inheritdoc />
+        public Matrix4D MatrixProjectionInverse { get; }
 
-        public Matrix<double> MatrixViewportInverse { get; }
+        /// <inheritdoc />
+        public Matrix4D MatrixViewport { get; }
 
-        public Matrix<double> MatrixViewProjection { get; }
+        /// <inheritdoc />
+        public Matrix4D MatrixViewportInverse { get; }
 
-        public Matrix<double> MatrixViewProjectionInverse { get; }
+        /// <inheritdoc />
+        public Matrix4D MatrixViewProjection { get; }
 
-        public Matrix<double> MatrixViewProjectionViewport { get; }
+        /// <inheritdoc />
+        public Matrix4D MatrixViewProjectionInverse { get; }
 
-        public Matrix<double> MatrixViewProjectionViewportInverse { get; }
+        /// <inheritdoc />
+        public Matrix4D MatrixViewProjectionViewport { get; }
 
+        /// <inheritdoc />
+        public Matrix4D MatrixViewProjectionViewportInverse { get; }
+
+        #endregion
+
+        #region // ctor
+
+        /// <inheritdoc />
         public CameraInfoCache(ICameraInfo cameraInfo)
         {
             // raw
 
             // world space -> camera space
-            MatrixView = MatrixEx.LookAtRH(cameraInfo.Position.ToVector3D(), cameraInfo.Target.ToVector3D(), cameraInfo.UpVector);
+            MatrixView = Matrix4DEx.LookAtRH(cameraInfo.Position.ToVector3D(), cameraInfo.Target.ToVector3D(), cameraInfo.UpVector);
             MatrixViewInverse = MatrixView.Inverse();
 
             // camera space -> clip space
@@ -38,7 +58,7 @@ namespace GraphicsProject.Common.Camera
             MatrixProjectionInverse = MatrixProjection.Inverse();
 
             // clip space -> screen space
-            MatrixViewport = MatrixEx.Viewport(cameraInfo.Viewport);
+            MatrixViewport = Matrix4DEx.Viewport(cameraInfo.Viewport);
             MatrixViewportInverse = MatrixViewport.Inverse();
 
             // multiplicatives
@@ -51,5 +71,7 @@ namespace GraphicsProject.Common.Camera
             MatrixViewProjectionViewport = MatrixViewProjection * MatrixViewport;
             MatrixViewProjectionViewportInverse = MatrixViewProjectionViewport.Inverse();
         }
+
+        #endregion
     }
 }

@@ -1,4 +1,5 @@
-﻿using MathNet.Numerics.LinearAlgebra;
+﻿using GraphicsProject.Mathematics;
+using MathNet.Numerics.LinearAlgebra;
 using MathNet.Spatial.Euclidean;
 using System;
 using System.Collections.Generic;
@@ -8,17 +9,23 @@ using System.Threading.Tasks;
 
 namespace GraphicsProject.Common.Camera.Projections
 {
-    public abstract class Projection : IProjection
+    /// <inheritdoc cref="IProjection"/>
+    public abstract class Projection :
+        IProjection
     {
-        #region //storage
+        #region // storage
+
+        /// <inheritdoc />
         public double NearPlane { get; }
 
+        /// <inheritdoc />
         public double FarPlane { get; }
 
         #endregion
 
-        #region //ctor
+        #region // ctor
 
+        /// <inheritdoc />
         protected Projection(double nearPlane, double farPlane)
         {
             NearPlane = nearPlane;
@@ -27,14 +34,18 @@ namespace GraphicsProject.Common.Camera.Projections
 
         #endregion
 
-        #region //routines
+        #region // routines
 
-        public abstract Matrix<double> GetMatrixProjection();
-
-        public abstract IProjection GetAdjustedProjection(double aspectRatio);
-
+        /// <inheritdoc />
         public abstract object Clone();
 
+        /// <inheritdoc />
+        public abstract Matrix4D GetMatrixProjection();
+
+        /// <inheritdoc />
+        public abstract IProjection GetAdjustedProjection(double aspectRatio);
+
+        /// <inheritdoc />
         public abstract Ray3D GetMouseRay(ICameraInfo cameraInfo, Point3D mouseWorld);
 
         #endregion

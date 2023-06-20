@@ -180,7 +180,7 @@ namespace GraphicsProject.Drivers.Gdi.Render
         /// <summary>
         /// Get default matrix for vertex shader.
         /// </summary>
-        private static Matrix<double> GetMatrixForVertexShader(IRenderHost renderHost, Space space)
+        private static Matrix4D GetMatrixForVertexShader(IRenderHost renderHost, Space space)
         {
             switch (space)
             {
@@ -188,7 +188,7 @@ namespace GraphicsProject.Drivers.Gdi.Render
                     return renderHost.CameraInfo.Cache.MatrixViewProjection;
 
                 case Space.View:
-                    return MatrixEx.Identity;
+                    return Matrix4D.Identity;
 
                 case Space.Screen:
                     return renderHost.CameraInfo.Cache.MatrixViewportInverse;

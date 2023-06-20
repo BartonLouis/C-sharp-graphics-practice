@@ -6,10 +6,20 @@ using System.Threading.Tasks;
 
 namespace GraphicsProject.Common.Camera.Projections
 {
-    public interface IProjectionOrthographic : IProjection
+    /// <summary>
+    /// Orthographic projection.
+    /// </summary>
+    public interface IProjectionOrthographic :
+        IProjection
     {
+        /// <summary>
+        /// Width of the view volume.
+        /// </summary>
         double FieldWidth { get; }
-        double FieldHeight { get; }
 
+        /// <summary>
+        /// Height of the view volume.
+        /// </summary>
+        double FieldHeight { get; }
     }
 }

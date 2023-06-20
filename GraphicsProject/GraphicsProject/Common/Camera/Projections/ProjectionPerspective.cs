@@ -1,4 +1,5 @@
-﻿using GraphicsProject.Mathematics.Extensions;
+﻿using GraphicsProject.Mathematics;
+using GraphicsProject.Mathematics.Extensions;
 using MathNet.Numerics.LinearAlgebra;
 using MathNet.Spatial.Euclidean;
 using System;
@@ -9,19 +10,26 @@ using System.Threading.Tasks;
 
 namespace GraphicsProject.Common.Camera.Projections
 {
-    internal class ProjectionPerspective : Projection, IProjectionPerspective
+    /// <inheritdoc cref="IProjectionPerspective"/>
+    public class ProjectionPerspective :
+        Projection,
+        IProjectionPerspective
     {
+        #region // routines
 
-        #region //storage
+        /// <inheritdoc />
         public double FieldOfViewY { get; }
 
+        /// <inheritdoc />
         public double AspectRatio { get; }
 
         #endregion
 
-        #region //ctor
+        #region // ctor
 
-        public ProjectionPerspective(double nearPlane, double farPlane, double fieldOfViewY, double aspectRatio) : base(nearPlane, farPlane)
+        /// <inheritdoc />
+        public ProjectionPerspective(double nearPlane, double farPlane, double fieldOfViewY, double aspectRatio) :
+            base(nearPlane, farPlane)
         {
             FieldOfViewY = fieldOfViewY;
             AspectRatio = aspectRatio;
@@ -29,23 +37,27 @@ namespace GraphicsProject.Common.Camera.Projections
 
         #endregion
 
-        #region //routines
+        #region // routines
 
+        /// <inheritdoc />
         public override object Clone()
         {
             return new ProjectionPerspective(NearPlane, FarPlane, FieldOfViewY, AspectRatio);
         }
 
+        /// <inheritdoc />
+        public override Matrix4D GetMatrixProjection()
+        {
+            return Matrix4DEx.PerspectiveFovRH(FieldOfViewY, AspectRatio, NearPlane, FarPlane);
+        }
+
+        /// <inheritdoc />
         public override IProjection GetAdjustedProjection(double aspectRatio)
         {
             return new ProjectionPerspective(NearPlane, FarPlane, FieldOfViewY, aspectRatio);
         }
 
-        public override Matrix<double> GetMatrixProjection()
-        {
-            return MatrixEx.PerspectiveFovRH(FieldOfViewY, AspectRatio, NearPlane, FarPlane);
-        }
-
+        /// <inheritdoc />
         public override Ray3D GetMouseRay(ICameraInfo cameraInfo, Point3D mouseWorld)
         {
             return new Ray3D(mouseWorld, (mouseWorld - cameraInfo.Position).Normalize());

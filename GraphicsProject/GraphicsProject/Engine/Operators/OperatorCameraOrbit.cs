@@ -5,40 +5,55 @@ using GraphicsProject.Mathematics;
 using GraphicsProject.Mathematics.Extensions;
 using GraphicsProject.Utilities;
 using System;
-using MathNet.Numerics.LinearAlgebra;
 using MathNet.Spatial.Euclidean;
 using MathNet.Spatial.Units;
-using System.Threading;
 
 namespace GraphicsProject.Engine.Operators
 {
-    internal class OperatorCameraOrbit : Operator
+    /// <summary>
+    /// Camera pan operator.
+    /// </summary>
+    public class OperatorCameraOrbit :
+        Operator
     {
+        #region // storage
 
-        #region //storage
         private ICameraInfo MouseDownCameraInfo { get; set; }
         private Point3D? MouseDownView { get; set; }
         private Point3D? OrbitOrigin { get; set; }
+
         #endregion
 
-        #region //ctor
-        public OperatorCameraOrbit(IRenderHost renderHost) : base(renderHost) { }
+        #region // ctor
 
+        public OperatorCameraOrbit(IRenderHost renderHost) :
+            base(renderHost)
+        {
+        }
+
+        /// <inheritdoc />
         public override void Dispose()
         {
             MouseDownCameraInfo = default;
             MouseDownView = default;
             OrbitOrigin = default;
+
             base.Dispose();
         }
+
         #endregion
 
-        #region //routines
+        #region // routines
 
-        private static Point3D GetOrbitOrigin(ICameraInfo cameraInfo) {
-            return cameraInfo.Target;  
+        /// <summary>
+        /// Get orbit origin.
+        /// </summary>
+        private static Point3D GetOrbitOrigin(ICameraInfo cameraInfo)
+        {
+            return cameraInfo.Target;
         }
 
+        /// <inheritdoc />
         protected override void InputOnMouseDown(object sender, IMouseEventArgs args)
         {
             base.InputOnMouseDown(sender, args);
@@ -49,6 +64,8 @@ namespace GraphicsProject.Engine.Operators
             MouseDownView = MouseDownCameraInfo.GetTransformationMatrix(Space.Screen, Space.View).Transform(args.Position.ToPoint3D());
             OrbitOrigin = GetOrbitOrigin(MouseDownCameraInfo);
         }
+
+        /// <inheritdoc />
         protected override void InputOnMouseUp(object sender, IMouseEventArgs args)
         {
             base.InputOnMouseUp(sender, args);
@@ -60,7 +77,7 @@ namespace GraphicsProject.Engine.Operators
             OrbitOrigin = default;
         }
 
-
+        /// <inheritdoc />
         protected override void InputOnMouseMove(object sender, IMouseEventArgs args)
         {
             base.InputOnMouseMove(sender, args);
@@ -71,6 +88,9 @@ namespace GraphicsProject.Engine.Operators
             RenderHost.CameraInfo = Orbit(MouseDownCameraInfo, mouseMoveView - MouseDownView.Value, OrbitOrigin.Value);
         }
 
+        /// <summary>
+        /// Create new <see cref="ICameraInfo"/> based on mouse offset in view space and orbit origin.
+        /// </summary>
         public static ICameraInfo Orbit(ICameraInfo cameraInfoStart, Vector3D mouseOffsetView, Point3D orbitOrigin)
         {
             // default input
@@ -83,7 +103,7 @@ namespace GraphicsProject.Engine.Operators
             var xAxis = yzPlane.Normal;
             var xzPlane = Plane.FromPoints(new Point3D(), zAxis.ToPoint3D(), xAxis.ToPoint3D());
             var yAxis = xzPlane.Normal;
-            var matrixWorldToLocal = (Matrix<double>)new CoordinateSystem(new Point3D(), xAxis, yAxis, zAxis);
+            var matrixWorldToLocal = Matrix4DEx.CoordinateSystem(new Point3D(), xAxis, yAxis, zAxis);
 
             // transform to local system
             orbitOrigin = matrixWorldToLocal.Transform(orbitOrigin);
@@ -94,13 +114,13 @@ namespace GraphicsProject.Engine.Operators
             GetSphereAngles(mouseOffsetView, (target - eye).Normalize(), out var thetaDelta, out var phiDelta);
 
             // rotate horizontally
-            var matrixRotationHorizontal = MatrixEx.Rotate(UnitVector3D.ZAxis, thetaDelta.Radians).TransformAround(orbitOrigin);
+            var matrixRotationHorizontal = Matrix4DEx.Rotate(UnitVector3D.ZAxis, thetaDelta.Radians).TransformAround(orbitOrigin);
             eye = matrixRotationHorizontal.Transform(eye);
             target = matrixRotationHorizontal.Transform(target);
 
             // rotate vertically
             var phiPlane = Plane.FromPoints(eye, target, target + UnitVector3D.ZAxis);
-            var matrixRotationVertical = MatrixEx.Rotate(phiPlane.Normal, phiDelta.Radians).TransformAround(orbitOrigin);
+            var matrixRotationVertical = Matrix4DEx.Rotate(phiPlane.Normal, phiDelta.Radians).TransformAround(orbitOrigin);
             eye = matrixRotationVertical.Transform(eye);
             target = matrixRotationVertical.Transform(target);
 
@@ -113,11 +133,14 @@ namespace GraphicsProject.Engine.Operators
             return new CameraInfo(eye, target, cameraInfoStart.UpVector, cameraInfoStart.Projection.Cloned(), cameraInfoStart.Viewport);
         }
 
+        /// <summary>
+        /// Get spherical angles for rotation based on mouse offset in view space. Clamps angle at default up vector (z = 0,0,1).
+        /// </summary>
         private static void GetSphereAngles(Vector3D mouseOffsetView, UnitVector3D eyeDirection, out Angle thetaDelta, out Angle phiDelta)
         {
             // get deltas
-            thetaDelta = Angle.FromRadians(-mouseOffsetView.X * Math.PI);
-            phiDelta = Angle.FromRadians(mouseOffsetView.Y * Math.PI);
+            thetaDelta = Angle.FromRadians(-mouseOffsetView.X * Math.PI);  // horizontal (around z-axis)
+            phiDelta = Angle.FromRadians(mouseOffsetView.Y * Math.PI);   // vertical
 
             var phiStart = UnitVector3D.ZAxis.AngleTo(-eyeDirection);
             var phiEnd = phiStart + phiDelta;
