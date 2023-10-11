@@ -11,6 +11,23 @@ namespace GraphicsProject.Utilities
     public static class U
     {
         /// <summary>
+        /// Clamp value (ensure it falls into a given range).
+        /// </summary>
+        public static int Clamp(this int value, int min, int max)
+        {
+            if (value < min)
+            {
+                value = min;
+                return value;
+            }
+            if (value > max)
+            {
+                value = max;
+            }
+            return value;
+        }
+
+        /// <summary>
         /// <see cref="ICloneable.Clone"/> and cast it to explicit type <typeparam name="T"/>.
         /// </summary>
         public static T Cloned<T>(this T cloneable) where T : ICloneable
@@ -99,11 +116,35 @@ namespace GraphicsProject.Utilities
         }
 
         /// <summary>
-        /// Convert color to RGBA integer: 0xRRGGBBAA;
+        /// Swap two instances.
+        /// </summary>
+        public static void Swap<T>(ref T value0, ref T value1)
+        {
+            var temp = value0;
+            value0 = value1;
+            value1 = temp;
+        }
+
+        /// <summary>
+        /// Convert <see cref="System.Drawing.Color"/> to RGBA integer: 0xAABBGGRR.
         /// </summary>
         public static int ToRgba(this System.Drawing.Color color)
         {
             return ((((color.A << 8) + color.B) << 8) + color.G << 8) + color.R;
+        }
+
+        /// <summary>
+        /// Convert 0xAABBGGRR color <see cref="System.Drawing.Color"/>.
+        /// </summary>
+        public static System.Drawing.Color FromRgbaToColor(this int color)
+        {
+            return System.Drawing.Color.FromArgb
+            (
+                (color >> 24) & 0xFF,
+                (color >> 0) & 0xFF,
+                (color >> 8) & 0xFF,
+                (color >> 16) & 0xFF
+            );
         }
     }
 }

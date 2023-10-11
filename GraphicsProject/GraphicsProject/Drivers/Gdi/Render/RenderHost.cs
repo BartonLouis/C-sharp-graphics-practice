@@ -66,7 +66,7 @@ namespace GraphicsProject.Drivers.Gdi.Render
             GraphicsHostDeviceContext = GraphicsHost.GetHdc();
             CreateSurface(HostInput.Size);
             CreateBuffers(BufferSize);
-            ShaderLibrary = new ShaderLibrary();
+            ShaderLibrary = new ShaderLibrary(this);
             FontConsolas12 = new Font("Consolas", 12);
         }
 
@@ -76,6 +76,7 @@ namespace GraphicsProject.Drivers.Gdi.Render
             FontConsolas12.Dispose();
             FontConsolas12 = default;
 
+            ShaderLibrary.Dispose();
             ShaderLibrary = default;
 
             DisposeBuffers();
@@ -140,13 +141,13 @@ namespace GraphicsProject.Drivers.Gdi.Render
         #region // render
 
         /// <inheritdoc />
-        protected override void RenderInternal(IEnumerable<IPrimitive> primitives)
+        protected override void RenderInternal(IEnumerable<IModel> models)
         {
             // clear buffers
             BackBuffer.Clear(Color.Black);
 
-            // render primitives
-            RenderPrimitives(primitives);
+            // render models
+            RenderModels(models);
 
             // draw fps
             BackBuffer.Graphics.DrawString(FpsCounter.FpsString, FontConsolas12, Brushes.Red, 0, 0);
@@ -161,19 +162,16 @@ namespace GraphicsProject.Drivers.Gdi.Render
         }
 
         /// <summary>
-        /// Draw primitives.
+        /// Draw models.
         /// </summary>
-        private void RenderPrimitives(IEnumerable<IPrimitive> primitives)
+        private void RenderModels(IEnumerable<IModel> models)
         {
-            // TODO: currently we know how to draw only certain type of primitives, so just filter them out
-            // TODO: in a future we're gonna solve this generically (without typecasting)
-            foreach (var primitive in primitives.OfType<GraphicsProject.Materials.Position.IPrimitive>())
+            foreach (var model in models)
             {
-                var pipeline = Pipeline<GraphicsProject.Materials.Position.Vertex, Materials.Position.VertexShader>.Instance;
-                pipeline.SetRenderHost(this);
-                ShaderLibrary.ShaderPosition.Update(GetMatrixForVertexShader(this, primitive.PrimitiveBehaviour.Space), primitive.Material.Color);
-                pipeline.SetShader(ShaderLibrary.ShaderPosition);
-                pipeline.Render(primitive.Vertices, primitive.PrimitiveTopology);
+                using (var gfxModel = GfxModel.Factory(this, model))
+                {
+                    gfxModel.Render(GetMatrixForVertexShader(this, model.Space));
+                }
             }
         }
 

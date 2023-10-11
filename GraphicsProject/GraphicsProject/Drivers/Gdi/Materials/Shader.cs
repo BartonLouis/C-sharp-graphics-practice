@@ -11,7 +11,7 @@ namespace GraphicsProject.Drivers.Gdi.Materials
     public abstract class Shader<TVertex, TVertexShader> :
         IShader<TVertex, TVertexShader>
         where TVertex : struct
-        where TVertexShader : struct, IVertexShader
+        where TVertexShader : struct, IVertex
     {
         #region // shaders
 

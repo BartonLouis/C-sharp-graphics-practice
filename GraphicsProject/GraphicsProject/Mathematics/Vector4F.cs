@@ -1,4 +1,5 @@
-﻿using System;
+﻿using GraphicsProject.Mathematics.Extensions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -9,7 +10,8 @@ namespace GraphicsProject.Mathematics
 {
     [Serializable]
     [StructLayout(LayoutKind.Sequential)]
-    public readonly struct Vector4F
+    public readonly struct Vector4F :
+       IInterpolate<Vector4F>
     {
         #region // static
 
@@ -78,6 +80,21 @@ namespace GraphicsProject.Mathematics
                 left.Y / right,
                 left.Z / right,
                 left.W / right
+            );
+        }
+
+        #endregion
+
+        #region // interpolation
+
+        public Vector4F InterpolateLinear(in Vector4F other, float alpha)
+        {
+            return new Vector4F
+            (
+                X.InterpolateLinear(other.X, alpha),
+                Y.InterpolateLinear(other.Y, alpha),
+                Z.InterpolateLinear(other.Z, alpha),
+                W.InterpolateLinear(other.W, alpha)
             );
         }
 
